@@ -1,0 +1,18 @@
+{
+	"port":"21213",
+	"sslcert":"/etc/letsencrypt/live/[domainname]/cert.pem",
+	"sslkey":"/etc/letsencrypt/live/[domainname]/privkey.pem",
+	"usetor": "true",
+	"tor":"https://[tor address].onion:8080/",
+	"torproxy":"socks5h://127.0.0.1:9050",
+	"lnurl":"https://umbrel.local:8080/",
+	"domainname":"[domainname]",
+	"macaroon":"[macaroon]",
+	"apikey":"[key]",
+	"usedb": "true",
+	"dbhost":"",
+	"dbuser":"",
+	"dbpassword":"",
+	"dbport":"",
+	"dbname":"sparkln"
+}

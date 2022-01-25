@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>sparkLN</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	
+	
+
+	
+	<style>
+		
+		
+	</style>
+
+</head>
+
+<body>
+
+
+    <h1>sparkLN</h1>
+    <p>An ultralight lightning network integration for minimal invoice handling.</p>
+	<p>Nodejs API to connect to LND service on TOR. Can create and view invoices, and subscribe to changes using websockets.</p>
+	<p>Use sparkln to have a separate endpoint connecting to your umbrel node (on Tor) for issuing in-app invoices.</p>
+	<p>Persists created invoices in db (mysql) for easier auditing</p>
+	
+	<h2>Config</h2>
+	<p>Set up configuration in config.json.</p>
+	<p>If "usetor=false", "lnurl" is used instead of Tor. Using Tor requires...Tor already running. Torproxy can vary (the port part).</p>
+	<p>Using letsencrypt TLS:<br/>
+		"sslcert":"/etc/letsencrypt/live/domainname/cert.pem"<br/>
+		"sslkey":"/etc/letsencrypt/live/domainname/privkey.pem"<br/>
+	</p>
+	<p>"Apikey" should be hard to guess - and only really relevant if the service is not used from public javascript.<br/>
+	If not using db persistence ("usedb=false"), ignore the db credentials.<br/>
+	Currently configured as a standalone service with a vhost answering on the given port for both https and secure websocket.
+	</p>
+	
+	<h3>From Umbrel</h3>
+	<p>SSH to your umbrel ssh umbrel@umbrel.local</p>
+	<p>Find your Tor LND REST hostname at: /umbrel/tor/data/lnd-rest/hostname </p>
+	<p>Create your macaroon (Permissions should be restricted): <br/>
+	/umbrel/bin/lncli bakemacaroon address:read address:write info:read info:write invoices:read invoices:write message:read message:write offchain:read offchain:write onchain:read onchain:write peers:read peers:write signer:generate signer:read
+</p>
+	<h2>Deploy</h2>
+	<p>Using pm2 process manager, run "pm2 start index.js". Sparkln is now accessible on the specified port</p>
+	
+	<h3>Behind Apache</h3>
+	<p>Running the service behind apache2 as proxy is fairly simple - although upgrading to secure WS seems...illusive. So, use as standalone or use this for inspiration:</p>
+	<p>
+		&#60;VirtualHost *:80&#62;<br/>
+	        ServerName [name]<br/>
+	        DocumentRoot [path]<br/>
+	        &#60;Directory /&#62;<br/>
+	        &nbsp;&nbsp;&nbsp;Options -Indexes +FollowSymLinks<br/>
+	        &nbsp;&nbsp;&nbsp;AllowOverride None<br/>
+	        &nbsp;&nbsp;&nbsp;Require all granted<br/>
+	        &#60;/Directory&#62;<br/>
+			ProxyRequests Off<br/>
+			ProxyPreserveHost On<br/>
+			ProxyVia Full<br/>
+			ProxyPass /v1/subscribeinvoice/ ws://localhost:21213/v1/subscribeinvoice/<br/>
+			ProxyPassReverse /v1/subscribeinvoice/ ws://localhost:21213/v1/subscribeinvoice/<br/>
+	        ProxyPass / http://localhost:21213/<br/>
+	      	ProxyPassReverse / http://localhost:21213/<br/>
+	&#60;/VirtualHost&#62;<br/>
+	------<br/>
+	Replace 21213 with port specified in config.json. Secure WS throws 404.<br/>
+	</p>
+	
+	
+	<h2>API</h2>
+	
+	<h3>Create invoice</h3>
+	<p><b>POST v1/invoice/</b></p>
+	<p>Takes "value", "expiry", "memo", "account" in request and creates invoice. "Account" is used for db persistence to easily differentiate different apps.</p>
+	<p>Returns JSON invoice consisting of:<br/>
+		invoice.bolt11<br/>
+		invoice.r_hash (hex). Use r_hash to get or subscribe to invoice</p>
+	
+	<h3>Get invoice</h3>
+	<p><b>GET v1/invoice/r_hash</b></p>
+	<p>Returns JSON invoice:<br/>
+	invoice.bolt11<br/>
+	invoice.memo<br/>
+	invoice.value<br/>
+	invoice.settled<br/>
+	invoice.expiry<br/>
+	invoice.state<br/>
+	</p>
+	
+	<h3>Subscribe to invoice updates</h3>
+	<p><b>WS v1/subscribeinvoice/?id=[r_hash]</b></p>
+	<p>Open a websocket connection to subscribe to updates on the invoice. Returns:<br/>
+		STATE: OPEN<br/>
+		STATE: SETTLED<br/>
+		STATE: CANCELED<br/>
+	Closes ws connection when invoice is either SETTLED or CANCELED
+	</p>
+	
+	<h2>Test</h2>
+	<p>In <a href="test/">test/</a> a simple html test page shows the entire functionality. An online version may sometimes be found at: <a href="https://utils.tekstur.dk/sparklnclient">https://utils.tekstur.dk/sparklnclient</a>
+	
+	
+	
+	
+	
+	
+</body>
+</html>

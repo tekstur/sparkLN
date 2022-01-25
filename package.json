@@ -1,0 +1,33 @@
+{
+  "name": "sparkln",
+  "version": "0.0.1",
+  "description": "Ultra lightweight lightning invoice integration for LND on tor",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tekstur/sparkLN.git"
+  },
+  "keywords": [
+    "lightning",
+    "network",
+    "lnd",
+    "tor"
+  ],
+  "author": "jens gertsen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tekstur/sparkLN/issues"
+  },
+  "homepage": "https://github.com/tekstur/sparkLN#readme",
+  "dependencies": {
+    "axios": "^0.25.0",
+    "body-parser": "^1.19.1",
+    "express": "^4.17.2",
+    "express-ws": "^5.0.2",
+    "request": "^2.88.2",
+    "socks-proxy-agent": "^6.1.1"
+  }
+}
