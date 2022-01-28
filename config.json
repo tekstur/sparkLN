@@ -14,5 +14,6 @@
 	"dbuser":"",
 	"dbpassword":"",
 	"dbport":"",
-	"dbname":"sparkln"
+	"dbname":"sparkln",
+	"logfile":"../logs/sparkln-log-%DATE%.log"
 }

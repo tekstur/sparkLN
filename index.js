@@ -1,5 +1,6 @@
 //config file
 const config = require('./config.json');
+const logger = require('./logger');
 
 const express = require('express');
 const https = require('https');
@@ -31,6 +32,7 @@ const subscribeInvoice = require('./subscribeinvoice');
 //init
 const PORT = config.port;
 
+
 //routes
 app.use('/', express.static('public'));
 app.use('/test', express.static('test'));
@@ -48,7 +50,8 @@ app.use(function(req, res, next) {
 
 app.use(function(req, res, next) {
   if (!req.headers.authorization || req.headers.authorization != ("apikey " + config.apikey)) {
-    return res.status(403).json({ error: 'Bad or no apikey' });
+	  logger.error("REQUEST: Bad or no apikey");
+	return res.status(403).json({ error: 'Bad or no apikey' });
   }
   next();
 });
@@ -64,16 +67,16 @@ app.post('/v1/invoice', function (req, res) {
 var superApp = module.exports = express();
 superApp.use(vhost(config.domainname, app));
 
-server.listen(PORT, () => console.log("SparkLN server listening on port: "+PORT));
+server.listen(PORT, () => logger.info("SparkLN server listening on port: "+PORT));
 if(config.usetor){
-	console.log("USING TOR");
+	logger.info("USING TOR");
 }
 //websocket
 
 
 
 var wss = new WebSocketServer({server: server, rejectUnauthorized: false, path: "/v1/subscribeinvoice/"});
-console.log("SparkLN server listening WSS");
+logger.info("SparkLN server listening WSS");
 
 wss.on("connection", function(ws,req){
 	var id = (url.parse(req.url, true).query).id;

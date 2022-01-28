@@ -2,9 +2,11 @@ const request = require('request');
 const SocksProxyAgent = require('socks-proxy-agent');
 const mysql = require('mysql');
 const crypto = require("crypto");
+const logger = require('./logger');
 
 module.exports = function (satValue,expiry,memo, account,config,res) {
 	if(isNaN(satValue) || satValue < 0 || satValue > 100000000 || isNaN(expiry) || expiry < 0 || expiry > 43200 || memo.length > 256 ||  account.length > 256){
+		logger.error("BAd invoice input");
 		res.setHeader('Content-Type', 'application/json');
 		res.send("{'status':'inputerror'}");
 	}
@@ -18,6 +20,7 @@ module.exports = function (satValue,expiry,memo, account,config,res) {
 		    expiry: expiry,
 			memo: memo
 		}
+	
 		var invoice = {};
 	
 		let options = {
@@ -36,6 +39,7 @@ module.exports = function (satValue,expiry,memo, account,config,res) {
 			options.url=completeUrl;
 			options.agent=agent;
 		}
+		logger.info("CREATE INVOICE " + completeUrl + " // " +JSON.stringify(requestBody) + " // " + JSON.stringify(options));
 		try{
 			request.post(options, function(error, response, body) {
 				if(body != undefined && body.r_hash != undefined && body.payment_request != undefined ){
@@ -48,12 +52,14 @@ module.exports = function (satValue,expiry,memo, account,config,res) {
 					}
 				}
 				else{
+					logger.error("LND POST ERROR - " + JSON.stringify(body));
 					res.status(500).json({ error: 'LND error' });
 				}		
 			});
 		}
 		catch(err){
-			console.error("Error in lnd post: " + err);
+			
+			logger.error("Error in lnd post: " + err);
 		}
 	}
 }
@@ -72,7 +78,7 @@ function persistInvoice(invoice,account,r_hash, config){
 	  const id = crypto.randomBytes(16).toString("hex");
 	  conn.query(sql,[id,invoice.value,invoice.expiry,invoice.memo,account,r_hash], function(err, result) {
 	     if (err)
-	       console.log('DB INSERT ERROR');
+	       logger.log('DB INSERT ERROR');
 	   });
 	   conn.end();
    });
